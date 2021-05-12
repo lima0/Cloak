@@ -152,7 +152,13 @@ func main() {
 
 	var seshMaker func() *mux.Session
 
-	d := &net.Dialer{Control: protector, KeepAlive: remoteConfig.KeepAlive}
+	var d *net.Dialer
+	conn, err := net.Dial("udp", remoteConfig.RemoteAddr)
+	d = &net.Dialer{Control: protector, KeepAlive: remoteConfig.KeepAlive}
+	if err == nil {
+		d.LocalAddr = &net.TCPAddr{IP: conn.LocalAddr().(*net.UDPAddr).IP, Port: 0}
+		conn.Close()
+	}
 
 	if adminUID != nil {
 		log.Infof("API base is %v", localConfig.LocalAddr)
